@@ -23,9 +23,9 @@ import java.math.BigDecimal;
 public class Main {
 
     // Database connection details
-    private static final String URL = "jdbc:mysql://localhost:3306/bankdb";
+    private static final String URL = "jdbc:mysql://localhost:3307/learn";
     private static final String USER = "root";
-    private static final String PASSWORD = "your_password"; // Replace with your MySQL password
+    private static final String PASSWORD = "hakim@123"; // Replace with your MySQL password
 
     // SQL script to set up the database and table
     private static final String SETUP_SQL = """
@@ -55,7 +55,7 @@ public class Main {
         System.out.println("--- Starting Bank Transaction Demo ---");
 
         // Setup the database with initial accounts
-        setupDatabase();
+//        setupDatabase();
 
         // Instantiate the bank service
         BankService bankService = new BankService();
