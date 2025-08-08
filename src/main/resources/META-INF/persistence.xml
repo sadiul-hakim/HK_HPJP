@@ -6,11 +6,16 @@
     <persistence-unit name="my-persistence-unit" transaction-type="RESOURCE_LOCAL">
         <provider>org.hibernate.jpa.HibernatePersistenceProvider</provider>
         <class>xyz.sadiulhakim.example.actor.Actor</class>
+        <class>xyz.sadiulhakim.inheritance.BillingDetails</class>
+        <class>xyz.sadiulhakim.inheritance.BankAccount</class>
+        <class>xyz.sadiulhakim.inheritance.CreditCard</class>
         <properties>
             <property name="jakarta.persistence.jdbc.url" value="jdbc:mysql://localhost:3307/sakila"/>
             <property name="jakarta.persistence.jdbc.user" value="root"/>
             <property name="jakarta.persistence.jdbc.password" value="hakim@123"/>
             <property name="hibernate.show_sql" value="true"/>
+            <property name="hibernate.format_sql" value="true"/>
+            <property name="hibernate.hbm2ddl.auto" value="validate"/>
         </properties>
     </persistence-unit>
 </persistence>
