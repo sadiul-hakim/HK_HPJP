@@ -15,7 +15,7 @@
             <property name="jakarta.persistence.jdbc.password" value="hakim@123"/>
             <property name="hibernate.show_sql" value="true"/>
             <property name="hibernate.format_sql" value="true"/>
-            <property name="hibernate.hbm2ddl.auto" value="validate"/>
+<!--            <property name="hibernate.hbm2ddl.auto" value="validate"/>-->
         </properties>
     </persistence-unit>
 </persistence>

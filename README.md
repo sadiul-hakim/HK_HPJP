@@ -1,5 +1,7 @@
 # High Performance Java Persistence
 
+## persistence.xml
+
 The persistence.xml file must be located in the src/main/resources/META-INF directory. This is a standard convention
 that all JPA providers, including Hibernate, follow to find the configuration. Make sure the file path is correct in
 your project structure.
@@ -68,3 +70,200 @@ Here is a typical structure of a `persistence.xml` file for a Java SE applicatio
         * `hibernate.show_sql`: If set to `true`, Hibernate will print all executed SQL statements to the console.
         * `hibernate.dialect`: Specifies the SQL dialect for your database (e.g., MySQL, PostgreSQL, Oracle) so
           Hibernate can generate correct and optimized SQL.
+
+## hibernate.properties
+
+In plain Hibernate (without JPA), you can use **`hibernate.properties`** instead of `persistence.xml`.
+
+Here’s how it works depending on whether you use **JPA** or **native Hibernate**:
+
+---
+
+### 1️⃣ If you use **JPA** (`EntityManagerFactory`)
+
+* `persistence.xml` is required because the JPA spec mandates it.
+* The JPA bootstrapping process looks specifically for a `META-INF/persistence.xml` file, and `hibernate.properties`
+  will be ignored.
+* You can replace `persistence.xml` **only** if you skip JPA entirely and use Hibernate’s **native bootstrapping** API
+  instead.
+
+---
+
+### 2️⃣ If you use **Native Hibernate** (`SessionFactory`)
+
+* You don’t need `persistence.xml`.
+* Hibernate will automatically look for a `hibernate.properties` file in your **classpath root** (e.g.,
+  `src/main/resources`).
+* You can also supply a `hibernate.cfg.xml`, but `hibernate.properties` is simpler.
+
+**Example `hibernate.properties`**
+
+```properties
+hibernate.connection.driver_class=org.postgresql.Driver
+hibernate.connection.url=jdbc:postgresql://localhost:5432/mydb
+hibernate.connection.username=myuser
+hibernate.connection.password=mypass
+hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+hibernate.hbm2ddl.auto=update
+hibernate.show_sql=true
+hibernate.format_sql=true
+```
+
+---
+
+✅ **Summary:**
+
+* **JPA** → needs `persistence.xml` (unless you ditch JPA).
+* **Native Hibernate** → `hibernate.properties` works fine and replaces `persistence.xml`.
+
+---
+
+### **how to bootstrap Hibernate using `hibernate.properties` without JPA**, so no `persistence.xml` is needed..
+
+Here’s how you can run Hibernate with **`hibernate.properties`** and **no `persistence.xml`** by using
+Hibernate’s native API.
+
+---
+
+## **1️⃣ Project Structure**
+
+```
+src/main/java/com/example/Main.java
+src/main/java/com/example/entity/User.java
+src/main/resources/hibernate.properties
+```
+
+---
+
+## **2️⃣ `hibernate.properties`**
+
+Place this in `src/main/resources` (classpath root):
+
+```properties
+hibernate.connection.driver_class=org.postgresql.Driver
+hibernate.connection.url=jdbc:postgresql://localhost:5432/mydb
+hibernate.connection.username=myuser
+hibernate.connection.password=mypass
+hibernate.dialect=org.hibernate.dialect.PostgreSQLDialect
+hibernate.hbm2ddl.auto=update
+hibernate.show_sql=true
+hibernate.format_sql=true
+```
+
+---
+
+## **3️⃣ Entity Class**
+
+```java
+package com.example.entity;
+
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "users")
+public class User {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    private String name;
+
+    public User() {
+    }
+
+    public User(String name) {
+        this.name = name;
+    }
+
+    // getters and setters
+    public Long getId() {
+        return id;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public void setName(String name) {
+        this.name = name;
+    }
+}
+```
+
+---
+
+## **4️⃣ Hibernate Bootstrapping (No JPA)**
+
+```java
+package com.example;
+
+import com.example.entity.User;
+import org.hibernate.Session;
+import org.hibernate.SessionFactory;
+import org.hibernate.cfg.Configuration;
+
+public class Main {
+    public static void main(String[] args) {
+        // Load settings from hibernate.properties automatically
+        Configuration configuration = new Configuration();
+        configuration.addAnnotatedClass(User.class);
+
+        try (SessionFactory sessionFactory = configuration.buildSessionFactory()) {
+            try (Session session = sessionFactory.openSession()) {
+                session.beginTransaction();
+
+                User user = new User("Alice");
+                session.persist(user);
+
+                session.getTransaction().commit();
+            }
+        }
+    }
+}
+```
+
+**How this works:**
+
+* `Configuration()` automatically reads `hibernate.properties` from the classpath.
+* No `hibernate.cfg.xml` or `persistence.xml` is needed.
+* You just register your annotated entity classes manually (`addAnnotatedClass`).
+
+---
+
+## **5️⃣ Maven Dependencies**
+
+```xml
+
+<dependencies>
+    <!-- Hibernate core -->
+    <dependency>
+        <groupId>org.hibernate.orm</groupId>
+        <artifactId>hibernate-core</artifactId>
+        <version>6.5.2.Final</version>
+    </dependency>
+
+    <!-- PostgreSQL driver -->
+    <dependency>
+        <groupId>org.postgresql</groupId>
+        <artifactId>postgresql</artifactId>
+        <version>42.7.3</version>
+    </dependency>
+
+    <!-- Jakarta Persistence API -->
+    <dependency>
+        <groupId>jakarta.persistence</groupId>
+        <artifactId>jakarta.persistence-api</artifactId>
+        <version>3.1.0</version>
+    </dependency>
+</dependencies>
+```
+
+---
+
+With this setup:
+
+* **We’re not using JPA’s `EntityManagerFactory`**, only Hibernate’s `SessionFactory`.
+* **`hibernate.properties` replaces `persistence.xml`** entirely.
+* The trade-off: you lose portability to other JPA providers (EclipseLink, etc.), but gain simplicity.
+
+---
